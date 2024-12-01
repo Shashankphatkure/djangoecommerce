@@ -34,6 +34,23 @@
           </div>
           {% endif %}
         </div>
+        {% elif product.image_url %}
+        <div class="product-detail-image">
+          <img
+            src="{{ product.image_url }}"
+            class="card-img-top"
+            alt="{{ product.name }}"
+          />
+          {% if product.stock < 5 and product.stock > 0 %}
+          <div class="product-badge">
+            <span class="badge bg-warning">Low Stock</span>
+          </div>
+          {% elif product.stock == 0 %}
+          <div class="product-badge">
+            <span class="badge bg-danger">Out of Stock</span>
+          </div>
+          {% endif %}
+        </div>
         {% endif %}
       </div>
     </div>

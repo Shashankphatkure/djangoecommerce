@@ -17,11 +17,19 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='products/', blank=True)
+    image_url = models.URLField(blank=True)
     stock = models.IntegerField(default=0)
     available = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
+    def get_image_url(self):
+        if self.image:
+            return self.image.url
+        elif self.image_url:
+            return self.image_url
+        return None
+
     def __str__(self):
         return self.name
 

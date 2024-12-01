@@ -55,18 +55,19 @@ def update_cart(request, item_id):
     action = request.POST.get('action')
     
     if action == 'increment':
-        cart_item.quantity += 1
+        # Check if we have enough stock
+        if cart_item.quantity < cart_item.product.stock:
+            cart_item.quantity += 1
+            cart_item.save()
     elif action == 'decrement':
         if cart_item.quantity > 1:
             cart_item.quantity -= 1
+            cart_item.save()
         else:
             cart_item.delete()
-            return redirect('cart')
     elif action == 'remove':
         cart_item.delete()
-        return redirect('cart')
     
-    cart_item.save()
     return redirect('cart')
 
 @login_required
@@ -74,21 +75,35 @@ def cart(request):
     try:
         cart = Cart.objects.get(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart)
-        total = sum(item.total_price for item in cart_items)
+        
+        # Calculate totals
+        subtotal = sum(item.total_price for item in cart_items)
+        shipping_cost = 0 if subtotal >= 50 else 10
+        total = subtotal + shipping_cost
         cart_count = sum(item.quantity for item in cart_items)
-        remaining_amount = 50 - total if total < 50 else 0
+        
+        # Calculate remaining amount for free shipping
+        remaining_for_free_shipping = 50 - subtotal if subtotal < 50 else 0
+        
     except Cart.DoesNotExist:
         cart_items = []
+        subtotal = 0
+        shipping_cost = 0
         total = 0
         cart_count = 0
-        remaining_amount = 50
+        remaining_for_free_shipping = 50
     
-    return render(request, 'store/cart.html', {
+    context = {
         'cart_items': cart_items,
+        'subtotal': subtotal,
+        'shipping_cost': shipping_cost,
         'total': total,
         'cart_count': cart_count,
-        'remaining_amount': remaining_amount
-    })
+        'remaining_for_free_shipping': remaining_for_free_shipping,
+        'free_shipping_threshold': 50
+    }
+    
+    return render(request, 'store/cart.html', context)
 
 @login_required
 def order_confirmation(request):

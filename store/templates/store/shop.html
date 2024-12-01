@@ -71,6 +71,22 @@
                 </a>
               </div>
             </div>
+            {% elif product.image_url %}
+            <div class="product-image-wrapper">
+              <img
+                src="{{ product.image_url }}"
+                class="card-img-top"
+                alt="{{ product.name }}"
+              />
+              <div class="product-overlay">
+                <a
+                  href="{% url 'product_detail' product.id %}"
+                  class="btn btn-light btn-sm"
+                >
+                  <i class="bi bi-eye"></i> Quick View
+                </a>
+              </div>
+            </div>
             {% endif %}
             <div class="card-body d-flex flex-column">
               <div class="mb-2">
