@@ -78,80 +78,84 @@
 </div>
 
 <div class="related-products mt-5">
-  <h3 class="section-title mb-4">Related Products</h3>
+  {% if related_products %}
+  <div
+    class="section-header d-flex justify-content-between align-items-center mb-4"
+  >
+    <h3 class="section-title">Related Products</h3>
+    <a
+      href="?category={{ product.category.id }}"
+      class="btn btn-outline-primary btn-sm"
+    >
+      View All in {{ product.category.name }}
+      <i class="bi bi-arrow-right ms-2"></i>
+    </a>
+  </div>
+
   <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
-    {% for related in related_products %} {% if related.id != product.id %}
+    {% for related in related_products %}
     <div class="col">
       <div class="card h-100 shadow-sm product-card">
+        {% if related.stock < 5 %}
         <div class="product-badge">
-          {% if related.stock < 5 and related.stock > 0 %}
-          <span class="badge bg-warning">Low Stock</span>
-          {% elif related.stock == 0 %}
+          {% if related.stock > 0 %}
+          <span class="badge bg-warning">Only {{ related.stock }} left</span>
+          {% else %}
           <span class="badge bg-danger">Out of Stock</span>
           {% endif %}
         </div>
-        {% if related.image %}
-        <div class="product-image-wrapper">
-          <img
-            src="{{ related.image.url }}"
-            class="card-img-top"
-            alt="{{ related.name }}"
-          />
-          <div class="product-overlay">
-            <a
-              href="{% url 'product_detail' related.id %}"
-              class="btn btn-light btn-sm"
-            >
-              <i class="bi bi-eye"></i> Quick View
-            </a>
-          </div>
-        </div>
-        {% elif related.image_url %}
-        <div class="product-image-wrapper">
-          <img
-            src="{{ related.image_url }}"
-            class="card-img-top"
-            alt="{{ related.name }}"
-          />
-          <div class="product-overlay">
-            <a
-              href="{% url 'product_detail' related.id %}"
-              class="btn btn-light btn-sm"
-            >
-              <i class="bi bi-eye"></i> Quick View
-            </a>
-          </div>
-        </div>
         {% endif %}
-        <div class="card-body d-flex flex-column">
-          <div class="mb-2">
-            <span class="product-category">{{ related.category.name }}</span>
+
+        <div class="product-image-wrapper">
+          <img
+            src="{% if related.image %}{{ related.image.url }}{% else %}{{ related.image_url }}{% endif %}"
+            class="card-img-top"
+            alt="{{ related.name }}"
+          />
+          <div class="product-overlay">
+            <div class="d-flex gap-2">
+              <a
+                href="{% url 'product_detail' related.id %}"
+                class="btn btn-light btn-sm"
+              >
+                <i class="bi bi-eye"></i>
+              </a>
+              {% if related.stock > 0 %}
+              <a
+                href="{% url 'add_to_cart' related.id %}"
+                class="btn btn-primary btn-sm"
+              >
+                <i class="bi bi-cart-plus"></i>
+              </a>
+              {% endif %}
+            </div>
           </div>
-          <h5 class="card-title product-title">{{ related.name }}</h5>
+        </div>
+
+        <div class="card-body d-flex flex-column">
+          <span class="product-category mb-2">{{ related.category.name }}</span>
+          <h5 class="card-title product-title">
+            <a
+              href="{% url 'product_detail' related.id %}"
+              class="text-decoration-none text-dark"
+            >
+              {{ related.name }}
+            </a>
+          </h5>
           <div class="mt-auto">
             <div class="d-flex justify-content-between align-items-center">
-              <span class="h5 mb-0 product-price">${{ related.price }}</span>
-              <div class="btn-group">
-                {% if related.stock > 0 %}
-                <a
-                  href="{% url 'add_to_cart' related.id %}"
-                  class="btn btn-primary btn-sm"
-                >
-                  <i class="bi bi-cart-plus"></i> Add
-                </a>
-                {% else %}
-                <button class="btn btn-secondary btn-sm" disabled>
-                  Out of Stock
-                </button>
-                {% endif %}
-              </div>
+              <span class="product-price">${{ related.price }}</span>
+              {% if related.stock == 0 %}
+              <span class="text-danger small">Out of Stock</span>
+              {% endif %}
             </div>
           </div>
         </div>
       </div>
     </div>
-    {% endif %} {% endfor %}
+    {% endfor %}
   </div>
+  {% endif %}
 </div>
 
 <style>
@@ -314,54 +318,97 @@
 
   /* Related Products Section Styling */
   .related-products {
-    padding-top: 2rem;
+    padding-top: 3rem;
+    margin-top: 3rem;
     border-top: 1px solid var(--border-color);
+  }
+
+  .section-header {
+    position: relative;
+    padding-bottom: 1rem;
   }
 
   .section-title {
     font-size: 1.5rem;
     font-weight: 600;
     color: #1f2937;
-    margin-bottom: 1.5rem;
-    position: relative;
+    margin-bottom: 0;
   }
 
-  .section-title::after {
-    content: "";
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    width: 60px;
-    height: 3px;
-    background-color: var(--primary-color);
-    border-radius: 2px;
+  .section-header .btn-outline-primary {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
   }
 
-  /* Adjust product card for related items */
+  .related-products .product-card {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
   .related-products .product-image-wrapper {
-    height: 180px;
+    height: 200px;
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+  }
+
+  .related-products .product-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .related-products .product-card:hover .product-overlay {
+    opacity: 1;
   }
 
   .related-products .product-title {
     font-size: 1rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+  }
+
+  .related-products .product-title a:hover {
+    color: var(--primary-color) !important;
   }
 
   .related-products .product-price {
     font-size: 1.1rem;
+    font-weight: 600;
   }
 
-  /* Responsive adjustments for related products */
+  .related-products .btn-light {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    backdrop-filter: blur(4px);
+  }
+
+  .related-products .btn-light:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-2px);
+  }
+
   @media (max-width: 768px) {
-    .related-products .row {
-      margin: 0 -8px;
+    .related-products {
+      padding-top: 2rem;
+      margin-top: 2rem;
     }
 
-    .related-products .col {
-      padding: 0 8px;
+    .section-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
     }
 
     .related-products .product-image-wrapper {
-      height: 160px;
+      height: 180px;
     }
   }
 </style>

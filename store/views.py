@@ -29,12 +29,18 @@ def shop(request):
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    
     # Get related products from the same category, excluding the current product
+    # and prioritizing in-stock items
     related_products = Product.objects.filter(
-        category=product.category
+        category=product.category,
+        available=True
     ).exclude(
         id=product.id
-    )[:4]  # Limit to 4 related products
+    ).order_by(
+        '-stock',  # Show in-stock items first
+        '-id'      # Then show newer products
+    )[:4]         # Limit to 4 related products
     
     context = {
         'product': product,
