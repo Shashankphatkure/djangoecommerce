@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView
+from django.contrib import messages
 from .models import Product, Cart, CartItem, Order, OrderItem, Category
 from decimal import Decimal
 
@@ -127,29 +128,63 @@ def checkout(request):
     try:
         cart = Cart.objects.get(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart)
+        
+        if not cart_items.exists():
+            messages.error(request, 'Your cart is empty')
+            return redirect('cart')
+            
         total = sum(item.total_price for item in cart_items)
+        
     except Cart.DoesNotExist:
+        messages.error(request, 'Your cart is empty')
         return redirect('cart')
 
     if request.method == 'POST':
-        # Process the order
-        order = Order.objects.create(
-            user=request.user,
-            address=request.POST['address'],
-            phone=request.POST['phone'],
-            total_amount=total
-        )
+        # Validate required fields
+        required_fields = [
+            'first_name', 'last_name', 'email', 'phone',
+            'address', 'city', 'state', 'zip',
+            'cc_name', 'cc_number', 'cc_expiration', 'cc_cvv'
+        ]
         
-        for cart_item in cart_items:
-            OrderItem.objects.create(
-                order=order,
-                product=cart_item.product,
-                quantity=cart_item.quantity,
-                price=cart_item.product.price
-            )
-        
-        cart_items.delete()
-        return redirect('order_confirmation')
+        if all(request.POST.get(field) for field in required_fields):
+            try:
+                # Create the order
+                order = Order.objects.create(
+                    user=request.user,
+                    first_name=request.POST['first_name'],
+                    last_name=request.POST['last_name'],
+                    email=request.POST['email'],
+                    phone=request.POST['phone'],
+                    address=request.POST['address'],
+                    city=request.POST['city'],
+                    state=request.POST['state'],
+                    zip_code=request.POST['zip'],
+                    total_amount=total
+                )
+                
+                # Create order items
+                for cart_item in cart_items:
+                    OrderItem.objects.create(
+                        order=order,
+                        product=cart_item.product,
+                        quantity=cart_item.quantity,
+                        price=cart_item.product.price
+                    )
+                    
+                    # Update product stock
+                    product = cart_item.product
+                    product.stock -= cart_item.quantity
+                    product.save()
+                
+                # Clear the cart
+                cart_items.delete()
+                
+                return redirect('order_confirmation')
+            
+            except Exception as e:
+                messages.error(request, f'An error occurred: {e}')
+                return redirect('checkout')
     
     return render(request, 'store/checkout.html', {
         'cart_items': cart_items,

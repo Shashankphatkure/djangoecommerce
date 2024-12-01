@@ -54,13 +54,19 @@ class CartItem(models.Model):
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    address = models.TextField()
-    phone = models.CharField(max_length=20)
+    first_name = models.CharField(max_length=100, default="Unknown")
+    last_name = models.CharField(max_length=100, default="Unknown")
+    email = models.EmailField(default="unknown@example.com")
+    phone = models.CharField(max_length=20, default="0000000000")
+    address = models.CharField(max_length=200)
+    city = models.CharField(max_length=100, default="Unknown")
+    state = models.CharField(max_length=100, default="Unknown")
+    zip_code = models.CharField(max_length=20, default="00000")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     created = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"Order {self.id} - {self.user.username}"
+        return f"Order {self.id} by {self.user.username}"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
