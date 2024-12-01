@@ -29,16 +29,18 @@ def shop(request):
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    # Get similar products from the same category
-    similar_products = Product.objects.filter(
-        category=product.category,
-        available=True
-    ).exclude(id=product.id)[:4]  # Limit to 4 similar products
+    # Get related products from the same category, excluding the current product
+    related_products = Product.objects.filter(
+        category=product.category
+    ).exclude(
+        id=product.id
+    )[:4]  # Limit to 4 related products
     
-    return render(request, 'store/product_detail.html', {
+    context = {
         'product': product,
-        'similar_products': similar_products
-    })
+        'related_products': related_products,
+    }
+    return render(request, 'store/product_detail.html', context)
 
 @login_required
 def add_to_cart(request, product_id):
