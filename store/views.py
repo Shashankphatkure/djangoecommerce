@@ -76,15 +76,18 @@ def cart(request):
         cart_items = CartItem.objects.filter(cart=cart)
         total = sum(item.total_price for item in cart_items)
         cart_count = sum(item.quantity for item in cart_items)
+        remaining_amount = 50 - total if total < 50 else 0
     except Cart.DoesNotExist:
         cart_items = []
         total = 0
         cart_count = 0
+        remaining_amount = 50
     
     return render(request, 'store/cart.html', {
         'cart_items': cart_items,
         'total': total,
-        'cart_count': cart_count
+        'cart_count': cart_count,
+        'remaining_amount': remaining_amount
     })
 
 @login_required
@@ -95,17 +98,20 @@ def order_confirmation(request):
 
 @login_required
 def checkout(request):
-    if request.method == 'POST':
+    try:
         cart = Cart.objects.get(user=request.user)
         cart_items = CartItem.objects.filter(cart=cart)
-        
-        total_amount = sum(item.total_price for item in cart_items)
-        
+        total = sum(item.total_price for item in cart_items)
+    except Cart.DoesNotExist:
+        return redirect('cart')
+
+    if request.method == 'POST':
+        # Process the order
         order = Order.objects.create(
             user=request.user,
             address=request.POST['address'],
             phone=request.POST['phone'],
-            total_amount=total_amount
+            total_amount=total
         )
         
         for cart_item in cart_items:
@@ -119,4 +125,7 @@ def checkout(request):
         cart_items.delete()
         return redirect('order_confirmation')
     
-    return render(request, 'store/checkout.html') 
+    return render(request, 'store/checkout.html', {
+        'cart_items': cart_items,
+        'total': total
+    }) 
