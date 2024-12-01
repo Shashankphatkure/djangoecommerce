@@ -6,6 +6,21 @@ from django.views.generic.edit import CreateView
 from .models import Product, Cart, CartItem, Order, OrderItem, Category
 from decimal import Decimal
 
+def get_base_context():
+    context = {
+        'categories': Category.objects.all()
+    }
+    
+    # Add cart count if user is authenticated
+    if hasattr(get_base_context, 'request') and get_base_context.request.user.is_authenticated:
+        try:
+            cart = Cart.objects.get(user=get_base_context.request.user)
+            context['cart_count'] = sum(item.quantity for item in cart.cartitem_set.all())
+        except Cart.DoesNotExist:
+            context['cart_count'] = 0
+            
+    return context
+
 def shop(request):
     category_id = request.GET.get('category')
     search_query = request.GET.get('search')
@@ -18,14 +33,14 @@ def shop(request):
     if search_query:
         products = products.filter(name__icontains=search_query)
     
-    categories = Category.objects.all()
-    
-    return render(request, 'store/shop.html', {
+    context = get_base_context()
+    context.update({
         'products': products,
-        'categories': categories,
         'current_category': category_id,
         'search_query': search_query
     })
+    
+    return render(request, 'store/shop.html', context)
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
