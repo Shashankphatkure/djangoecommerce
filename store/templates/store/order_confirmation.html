@@ -1,0 +1,19 @@
+{% extends 'store/base.html' %} {% block content %}
+<div class="container">
+  <div class="text-center py-5">
+    <div class="mb-4">
+      <i class="bi bi-check-circle text-success" style="font-size: 4rem"></i>
+    </div>
+    <h2>Thank You for Your Order!</h2>
+    <p class="lead text-muted">Your order has been successfully placed.</p>
+    <div class="mt-4">
+      <p>Order ID: #{{ order.id }}</p>
+      <p>Total Amount: ${{ order.total_amount }}</p>
+      <p>Shipping Address: {{ order.address }}</p>
+    </div>
+    <a href="{% url 'shop' %}" class="btn btn-primary mt-3"
+      >Continue Shopping</a
+    >
+  </div>
+</div>
+{% endblock %}
