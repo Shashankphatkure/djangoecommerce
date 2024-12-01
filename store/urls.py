@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import RegisterView
 
 urlpatterns = [
     path('', views.shop, name='shop'),
@@ -9,4 +10,5 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('order-confirmation/', views.order_confirmation, name='order_confirmation'),
     path('update-cart/<int:item_id>/', views.update_cart, name='update_cart'),
+    path('accounts/register/', RegisterView.as_view(), name='register'),
 ] 

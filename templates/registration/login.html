@@ -1,11 +1,75 @@
 {% extends 'store/base.html' %} {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <h2>Login</h2>
-    <form method="post">
-      {% csrf_token %} {{ form.as_p }}
-      <button type="submit" class="btn btn-primary">Login</button>
-    </form>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <div class="text-center mb-4">
+            <i class="bi bi-person-circle display-4 text-primary"></i>
+            <h3 class="mt-3">Welcome Back</h3>
+            <p class="text-muted">Please login to your account</p>
+          </div>
+
+          <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <div class="input-group">
+                <span class="input-group-text"
+                  ><i class="bi bi-person"></i
+                ></span>
+                {{ form.username }}
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="password" class="form-label">Password</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                {{ form.password }}
+              </div>
+            </div>
+
+            {% if form.errors %}
+            <div class="alert alert-danger" role="alert">
+              <i class="bi bi-exclamation-circle me-2"></i>
+              Invalid username or password
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary w-100 mb-3">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Login
+            </button>
+          </form>
+
+          <div class="text-center">
+            <p class="mb-0">
+              Don't have an account?
+              <a href="{% url 'register' %}" class="text-decoration-none"
+                >Register</a
+              >
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<style>
+  .form-control {
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+  }
+  .input-group-text {
+    background-color: transparent;
+  }
+  .btn-primary {
+    padding: 0.75rem 1.5rem;
+  }
+  .card {
+    border-radius: 1rem;
+  }
+</style>
 {% endblock %}

@@ -1,5 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.urls import reverse_lazy
+from django.views.generic.edit import CreateView
 from .models import Product, Cart, CartItem, Order, OrderItem, Category
 from decimal import Decimal
 
@@ -128,4 +131,10 @@ def checkout(request):
     return render(request, 'store/checkout.html', {
         'cart_items': cart_items,
         'total': total
-    }) 
+    })
+
+class RegisterView(CreateView):
+    form_class = UserCreationForm
+    template_name = 'registration/register.html'
+    success_url = reverse_lazy('login')
+    
